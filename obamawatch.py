@@ -183,7 +183,7 @@ class WebcamMonitoring(QThread):
             hour = int(time.strftime("%H", time.localtime()))
             if hour < HOURSTART or hour > HOURSTOP:
                 print(f"Not a good time: {hour}")
-                # continue
+                continue
 
             self.getPhoto()
 
