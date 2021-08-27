@@ -55,15 +55,22 @@ class ObamaWatcher(QApplication):
         QApplication.__init__(self)
         self.setQuitOnLastWindowClosed(False)
 
+        self.CWD = os.path.abspath(".")
+
         # Adding item on the menu bar
         self.tray = QSystemTrayIcon()
+        self.setStatus(Status.OFF)
         self.tray.setVisible(True)
 
-        self.setStatus(Status.OFF)
         self.webcam = WebcamMonitoring(parent=self)
         self.webcam.start()
 
         menu = QMenu()
+
+        # manual photo option
+        photo = QAction("Photo now!")
+        photo.triggered.connect(self.getPhoto)
+        menu.addAction(photo)
 
         # To quit the app
         quit = QAction("Quit")
@@ -78,12 +85,19 @@ class ObamaWatcher(QApplication):
         """
         Update menu icon if up or down.
         """
+        debug("ObamaWatcher: setStatus received:", status)
         if status == Status.ON:
             picture = STATUSON
         else:
             picture = STATUSOFF
+        picture = f"{self.CWD}/{picture}"
+        debug("ObamaWatcher: got the picture:", picture)
         icon = QIcon(picture)
         self.tray.setIcon(icon)
+
+    def getPhoto(self):
+        debug("ObamaWatcher: called getPhoto()")
+        self.webcam.getPhoto()
 
 class WebcamMonitoring(QThread):
     def __init__(self, parent=None):
@@ -101,7 +115,7 @@ class WebcamMonitoring(QThread):
         Reads the configuration size in format AxB, and returns
         (int(A), int(B))
         """
-        x, y = split(SIZE, "x")
+        x, y = SIZE.split("x")
         return (int(x), int(y))
 
     def getCamera(self):
@@ -109,7 +123,7 @@ class WebcamMonitoring(QThread):
         Returns the camera object from pygame, which device and picture size set.
         """
         debug("WebcamMonitoring: called getCamera()")
-        return pygame.camera.Camera(CAMERA, self.getPictureSize(SIZE))
+        return pygame.camera.Camera(CAMERA, self.getPictureSize())
 
     def getYourLuck(self):
         """
@@ -120,11 +134,44 @@ class WebcamMonitoring(QThread):
             return True
         return False
 
+    def getPhoto(self):
+        """
+        Take a picture, notify user (to avoid surprises) and save.
+        """
+        notify2.Notification("Smile! obamawatch is 👀... you do know the drill :)").show()
+        # wait 3s to get notice (brain takes around 3s to react)
+        QThread.sleep(3)
+
+        self.parent.setStatus(Status.ON)
+        webcam = self.getCamera()
+        webcam.start()
+        debug(" * getting image")
+        image = webcam.get_image()
+        webcam.stop()
+
+        timestamp = time.strftime("%Y-%m-%d_%H%M%S", time.localtime())
+        year = time.strftime("%Y", time.localtime())
+        if not os.path.exists("%s/%s" % (SAVEDIR, year)):
+            os.mkdir("%s/%s" % (SAVEDIR, year))
+        filename = "%s/%s/%s.jpg" % (SAVEDIR, year, timestamp)
+
+        #pynotify.Notification("Photo: saving into %s" % filename).show()
+        debug(f"Photo: {filename}")
+        pygame.image.save(image, filename)
+
+        # wait 15s to show next message to avoid flood
+        QThread.sleep(15)
+        notify2.Notification("obamawatch saved your picture: %s :)" % filename).show()
+        self.parent.setStatus(Status.OFF)
+
     def run(self):
         """
         Main thread that keep running.
         """
         debug("WebcamMonitoring: called start()")
+        # give one minute for menu to start
+        QThread.sleep(60)
+        debug("WebcamMonitoring: starting the monitoring loop")
         while True:
             # skip at certain times
             if not self.getYourLuck():
@@ -136,27 +183,9 @@ class WebcamMonitoring(QThread):
             hour = int(time.strftime("%H", time.localtime()))
             if hour < HOURSTART or hour > HOURSTOP:
                 print(f"Not a good time: {hour}")
-                continue
+                # continue
 
-            notify2.Notification("Smile! obamawatch is 👀... you do know the drill :)").show()
-            webcam = self.getCamera()
-            webcam.start()
-            debug(" * getting image")
-            image = webcam.get_image()
-            webcam.stop()
-
-            timestamp = time.strftime("%Y-%m-%d_%H%M%S", time.localtime())
-            year = time.strftime("%Y", time.localtime())
-            if not os.path.exists("%s/%s" % (SAVEDIR, year)):
-                os.mkdir("%s/%s" % (SAVEDIR, year))
-            filename = "%s/%s/%s.jpg" % (SAVEDIR, year, timestamp)
-
-            #pynotify.Notification("Photo: saving into %s" % filename).show()
-            debug(f"Photo: {filename}")
-            pygame.image.save(image, filename)
-            # wait 30s to show next message to avoid flood
-            QThread.sleep(30)
-            notify2.Notification("obamawatch saved your picture: %s :)" % filename).show()
+            self.getPhoto()
 
 
     def stop(self):
@@ -164,8 +193,7 @@ class WebcamMonitoring(QThread):
         Terminating this thread.
         """
         debug("WebcamMonitoring: called stop()")
-        #self.terminate()
-        pass
+        self.terminate()
 
 
 if __name__ == '__main__':
