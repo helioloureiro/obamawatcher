@@ -159,8 +159,8 @@ class WebcamMonitoring(QThread):
         debug(f"Photo: {filename}")
         pygame.image.save(image, filename)
 
-        # wait 15s to show next message to avoid flood
-        QThread.sleep(15)
+        # wait 5s to show next message to avoid flood
+        QThread.sleep(5)
         notify2.Notification("obamawatch saved your picture: %s :)" % filename).show()
         self.parent.setStatus(Status.OFF)
 
