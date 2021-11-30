@@ -52,6 +52,13 @@ class ObamaWatcher(QApplication):
         """
         Initialize ObamaWatcher QT application.
         """
+        # to get icons properly in place
+        programFile=sys.argv[0]
+        programPath=os.path.dirname(programFile)
+        programPath=os.path.abspath(programPath)
+        os.chdir(programPath)
+
+
         QApplication.__init__(self)
         self.setQuitOnLastWindowClosed(False)
 
@@ -79,6 +86,7 @@ class ObamaWatcher(QApplication):
 
         # Adding options to the System Tray
         self.tray.setContextMenu(menu)
+        self.tray.setToolTip("ObamaWatcher is watching you 👀!")
         self.exec_()
 
     def setStatus(self, status):
