@@ -58,6 +58,10 @@ class ObamaWatcher(QApplication):
         programPath=os.path.abspath(programPath)
         os.chdir(programPath)
 
+        # if not there, create SAVEDIR
+        if not os.path.exists(SAVEDIR):
+            os.makedirs(SAVEDIR)
+
 
         QApplication.__init__(self)
         self.setQuitOnLastWindowClosed(False)
