@@ -9,17 +9,18 @@ lapsing about my work.
 This program was tested only in Linux and running KDE.  So I'm not sure whether it
 works or not in other systems.
 
-Installation
-------------
+## Installation
 
 Just open clone this repository.  Then:
 
-    pip install -r requirements.txt
+```bash
+pip install -r requirements.txt
+```
 
+Edit the obamawatch.desktop with proper paths.  Then add it into your system initialization.
 
-
-
-
+It might work to just copy into `~/.config/autostart` but not all desktop environment do use
+it properly.
 
 ## Image source
 https://cdn11.bigcommerce.com/s-balh3740/images/stencil/1280x1280/products/12160/4292/president_barack_obama__54149.1396341148.jpg
