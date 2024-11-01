@@ -1,4 +1,4 @@
-#! /usr/bin/python3 -u
+#! /usr/bin/env python3 -u
 # -*- coding: utf-8 -*-
 
 """
@@ -19,9 +19,9 @@ import notify2
 import enum
 
 # graphical support
-from PySide2.QtGui import *
-from PySide2.QtWidgets import *
-from PySide2.QtCore import *
+from PySide6.QtGui import *
+from PySide6.QtWidgets import *
+from PySide6.QtCore import *
 
 
 USER      = os.environ.get("USER")
@@ -91,7 +91,7 @@ class ObamaWatcher(QApplication):
         # Adding options to the System Tray
         self.tray.setContextMenu(menu)
         self.tray.setToolTip("ObamaWatcher is watching you 👀!")
-        self.exec_()
+        self.exec()
 
     def setStatus(self, status):
         """
