@@ -1,0 +1,24 @@
+#! /usr/bin/env bash
+# initialize virtualenv if missing
+# and start the program
+
+program_dir=$(dirname $0)
+
+if [[ -z "$program_dir" ]]; then
+    program_dir="."
+fi
+
+program_abs_path=$(realpath $program_dir)
+
+if [[ "$(pwd)" != "$program_abs_path" ]]; then
+    cd $program_abs_path
+fi
+
+if [[ ! -d "venv" ]]; then
+    echo "initializing virtualenv"
+    python3 -m venv venv
+fi
+
+source venv/bin/activate
+exec python3 obamawatcher.py
+
